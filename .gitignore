@@ -1,0 +1,13 @@
+# PHP / OS
+.DS_Store
+Thumbs.db
+
+# Environment and local configuration
+.env
+.env.*
+config/database.local.php
+
+# Editor / cache
+.vscode/
+.idea/
+*.log
