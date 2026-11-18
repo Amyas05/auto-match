@@ -39,9 +39,37 @@ class AdController
         }
 
         $message = '';
+        $confirmation = isset($_GET['confirmation']) && $_GET['confirmation'] === '1'
+            && isset($_SESSION['derniere_demande'])
+            && (int) ($_SESSION['derniere_demande']['annonce_id'] ?? 0) === (int) $ad['annonce_id'];
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!Csrf::validate($_POST['_csrf'] ?? null)) {
                 $message = 'Votre session a expiré. Veuillez réessayer.';
+            } elseif (isset($_POST['demande_contact'])) {
+                $nom = trim($_POST['nom'] ?? '');
+                $email = trim($_POST['email'] ?? '');
+                $telephone = trim($_POST['telephone'] ?? '');
+                $contenu = trim($_POST['message'] ?? '');
+
+                if ($nom === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $contenu === '') {
+                    $message = 'Veuillez vérifier les champs signalés.';
+                    $formErrors = [
+                        'nom' => $nom === '' ? 'Votre nom est requis.' : '',
+                        'email' => !filter_var($email, FILTER_VALIDATE_EMAIL) ? 'Saisissez une adresse e-mail valide.' : '',
+                        'message' => $contenu === '' ? 'Votre message est requis.' : '',
+                    ];
+                } else {
+                    $_SESSION['derniere_demande'] = [
+                        'annonce_id' => (int) $ad['annonce_id'],
+                        'nom' => $nom,
+                        'email' => $email,
+                        'telephone' => $telephone,
+                        'message' => $contenu,
+                    ];
+                    header('Location: annonce.php?id=' . (int) $ad['annonce_id'] . '&confirmation=1');
+                    exit();
+                }
             } elseif ($modeDemo) {
                 $message = 'Les annonces sont en mode aperçu. Démarrez MySQL pour enregistrer vos demandes.';
             } else {
@@ -71,8 +99,9 @@ class AdController
             try { $favorite = (new FavoriteRepository(Database::connection($config)))->contains((int) $user['id'], (int) $ad['id']); } catch (PDOException $exception) {}
         }
 
-        $titrePage = $ad['marque'] . ' ' . $ad['modele'];
+        $titrePage = $confirmation ? 'Demande envoyée' : $ad['marque'] . ' ' . $ad['modele'];
         $csrf = Csrf::token();
+        $formErrors = $formErrors ?? [];
         require dirname(__DIR__, 2) . '/header.php';
         require dirname(__DIR__) . '/Views/ads/show.php';
         require dirname(__DIR__, 2) . '/footer.php';
