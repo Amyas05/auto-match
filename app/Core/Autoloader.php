@@ -9,6 +9,7 @@ class Autoloader
                 'App\\Core\\' => __DIR__ . '/',
                 'App\\Controllers\\' => dirname(__DIR__) . '/Controllers/',
                 'App\\Repositories\\' => dirname(__DIR__) . '/Repositories/',
+                'App\\Services\\' => dirname(__DIR__) . '/Services/',
             ];
 
             foreach ($prefixes as $prefix => $directory) {

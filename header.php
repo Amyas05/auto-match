@@ -3,9 +3,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-function e($value)
-{
-    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+if (!function_exists('e')) {
+    function e($value)
+    {
+        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+    }
 }
 
 $utilisateurConnecte = isset($_SESSION['utilisateur']) ? $_SESSION['utilisateur'] : null;
